@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+      <script
+         src="https://code.jquery.com/jquery-3.3.1.js"
+         integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+         crossorigin="anonymous"></script>
+   </head>
+   <body>
+      <script>
+          
+          
+  //Called whent the user selects an overhead tab
+  //Function: Moves the selection from one tab to another
+  //          Shows/Hides messages based on the filter
+  //----------------------------------------------------------------        
+  function onTabSelect(selfptr)
+  {
+
+      //deselect previous tab and reselect current
+      $(".tab").removeClass("selected-tab");
+      selfptr.classList.add("selected-tab");
+
+
+      //for the new message tab
+      if (selfptr.id == "new-messages-tab")
+      {
+          //show the new message input area
+          $("#message-textfield").css("display", "block");
+
+          //hide all messages, and show only the new ones 
+          $(".message").css("display", "none");
+          $(".new-message").css("display", "flex");
+
+          //if we have no new messages, show empty message
+          if ($("#new-messages-counter").val() == 0)
+          {
+              $(".empty-message").remove();
+
+              $("#message-list").append(
+                  "<div class='row empty-message'><div class='col-12 text-center'>You have no messages to display</div></div>");
+          }
+          else //if we have messages remove the empty message
+          {
+              $(".empty-message").remove();
+          }
+
+
+
+      }
+    
+      //for the all message tab
+      else if (selfptr.id == "all-messages-tab")
+      {
+          //show the new message input area
+          $("#message-textfield").css("display", "block");
+
+          //show all messages, new and old
+          $(".message").css("display", "flex");
+
+          //display empty message if no messages are present
+          if ($("#all-messages-counter").val() == 0)
+          {
+              $(".empty-message").remove();
+
+              $("#message-list").append(
+                  "<div class='row empty-message'><div class='col-12 text-center'>You have no messages to display</div></div>");
+          }
+          else //remove empty message if we have messages
+          {
+
+              $(".empty-message").remove();
+          }
+      }
+      
+      //for the sent message tab
+      else if (selfptr.id == "sent-messages-tab")
+      {
+          //show the new message input area
+          $("#message-textfield").css("display", "none");
+
+          //hide all messages and show only the ones we sent
+          //NOTE: currently not accepting sent messages so there is no counter
+          //so this page always displays the empty message at this point
+          //TODO: Add the ability to sendn messages and update this segment to
+          //reflect the number of messages sent
+          $(".message").css("display", "none");
+          $(".sent-message").css("display", "flex");
+
+          //just remove the previous empty message if there is one
+          $(".empty-message").remove();
+
+          
+          //add our default empty message
+          $("#message-list").append(
+              "<div class='row empty-message'><div class='col-12 text-center'>You have not sent any messages</div></div>");
+
+
+      }
+
+  }
+
+  //Called when user presses the delte message button 
+  //Function: Removes selected messages from DOM tree
+  //          Updates message counters
+  //----------------------------------------------------------------
+  function onDeleteButtonDown()
+  {
+      //remove the messages that are selected from DOM
+      $('.selected-message').remove();
+
+      //count left over messages
+      var numNewMsgs = $(".new-message").length;
+      var numAllMsgs = $(".message").length;
+      
+      //update the message counters
+      $("#new-messages-counter").val(numNewMsgs);
+      $("#all-messages-counter").val(numAllMsgs);
+
+      //if no messages left display the default empty message page
+      if (numAllMsgs == 0 || numAllMsgs == 0)
+      {
+          $("#message-list").append(
+              "<div class='row empty-message'><div class='col-12 text-center'>You have no messages to display</div></div>");
+      }
+
+     
+  }
+
+  //Called when user selects a message
+  //Function: Updates the visual look of the message that is selected
+  //          Marks new messages as read
+  //          Displays the delete button
+  //----------------------------------------------------------------  
+  function onMessageSelect(selfptr)
+  {
+      
+      //show the selection checkbox
+      $(selfptr).find(".message-check-box").css("visibility", "visible");
+      
+      //if the message was new, mark it as read
+      $(selfptr).removeClass("new-message");
+      $(selfptr).addClass("selected-message");
+      
+      //recount messages
+      $("#new-messages-counter").val($(".new-message").length);
+      $("#all-messages-counter").val($(".message").length);
+
+      //display the delete button
+      $('#delete-dropdown').removeClass("delete-dropdown-closed");
+      $('#delete-dropdown').addClass("delete-dropdown-open");
+  }
+
+  //Called when user clicks send on the New Message dialog
+  //Function: Inserts a new message into the list
+  //          Clears the text box for the next message
+  //          Recounts the messages
+  //----------------------------------------------------------------  
+  function onSendMessage()
+  {
+      //retrieve and check the message to make sure it's not blank
+      var typedMessage = $("textarea").val();
+      if (typedMessage == 0)
+      {
+          window.alert("Your message cannot be blank");
+          return;
+      }
+
+      //insert the new message as first on the list
+      $("#message-list").prepend(
+
+
+          '<div class="message row new-message" onclick="onMessageSelect(this)"><div class="message-check-box"><input type="checkbox" checked></div><div class="avatar message-avatar col-2 "></div><div class="message-body col-10"><div class="row"><div class="user-timestamp col-sm"><span>05-21-2018 11:21</span><span>@Mike Wazowski</span></div></div><div class="row"><div class ="user-message col-sm">' + typedMessage + '</div></div></div></div>'
+
+
+      );
+
+      //make sure the message is not displayed in the sent tab
+      if (($('.selected-tab').attr('id') == "sent-messages-tab"))
+      {
+          $(".message").css("display", "none");
+          $(".sent-message").css("display", "block");
+      }
+
+      //remove any stray empty messages
+      $(".empty-message").remove();
+
+      //clear the text box
+      $('#new-message-field').val("");
+
+
+      //recount messages
+      $("#new-messages-counter").val($(".new-message").length);
+      $("#all-messages-counter").val($(".message").length);
+  }
+
+
+  //Document click fallthrough
+  //Function: Allows clearing of elements when user clicks on empty space
+  //---------------------------------------------------------------- 
+  $(document).click(function(event)
+  {
+      if (!$(event.target).closest('.selected-message').length)
+      {
+          //clear the selection on a message
+          $(".selected-message").removeClass('selected-message');
+        
+          //hide the message checkbox
+          $(".message-check-box").css("visibility", "hidden");
+
+          //hide the delete button
+          $('#delete-dropdown').removeClass("delete-dropdown-open");
+          $('#delete-dropdown').addClass("delete-dropdown-closed");
+      }
+  });
+         
+             
+      </script>
+      <style type="text/css">
+         
+          .selected-tab {
+         color: blue;
+         }
+          
+         #multitab {
+         border-bottom: 1px solid black;
+         }
+          
+         #multi-tab div{
+         text-align: center;
+         padding-top: 0.5em;
+         font-weight: bold;
+         }
+          
+         .tab {
+         cursor: pointer;
+         }
+          
+         .message-avatar{
+         max-width: 100px;
+         }
+          
+         .avatar{
+         height: 86px;
+         width: 100px;
+         background-image: url(ironman.jpg);
+         background-size: 100px 80px;
+         background-repeat: no-repeat;
+         }
+          
+         .selected-message {
+         background-color:aliceblue;
+         }
+          
+         .new-message {
+         font-weight: bold;
+         }
+          
+         .message {
+         margin-top: 1em;
+         border-bottom: 1px solid #E3D4D4;
+         line-height: 18px;
+         position: relative;
+         font-family: "Times New Roman";
+         }
+          
+         .empty-message {
+         margin-top: 10em;
+         }
+          
+         .message-check-box {
+         position: absolute;
+         right: 20px;
+         top: 0px;
+         visibility: hidden;
+         -webkit-transform: scale(2);
+         }
+          
+         button {
+         width: 150px;
+         margin-right: 3em;
+         }
+          
+         .user-timestamp span{
+         display: block;
+         font-size: 1em;
+         line-height: 15px;
+         font-size: 0.7em;
+         color: #8693B6;
+         } 
+          
+         .message-counter {
+         width: 18px;
+         height: 18px;
+         font-size: 0.7em;
+         text-align: center;
+         }
+          
+         #delete-dropdown{
+         overflow: hidden;
+         transition: max-height 0.25s ease-in;
+         margin: 0em;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         cursor: pointer;
+         }
+          
+         #delete-button {
+         background-color: #FF5D5F;
+         border-radius: 0.2em;
+         padding: 0.2em;
+         display: flex;
+         align-items: center;
+         justify-content: center;
+         }
+          
+         #delete-button span {
+         font-weight: bold;
+         }
+          
+         .delete-dropdown-closed {
+         max-height: 0px;
+         }
+          
+         .delete-dropdown-open {
+         max-height: 100px;
+         }
+          
+      </style>
+      <div id="body-container" style=" height: 400px;">
+         <div id="multi-tab" class="container" style="padding-bottom:1em">
+            <div class="row">
+               <div id="new-messages-tab" class ="col-sm selected-tab tab" onclick="onTabSelect(this)"> New messages
+                  <input type ="text" id="new-messages-counter" maxlength="2" class="message-counter">
+               </div>
+               <div id="all-messages-tab" class ="col-sm tab" onclick="onTabSelect(this)"> All messages
+                  <input type ="text" id="all-messages-counter" maxlength="2" class="message-counter">
+               </div>
+               <div id="sent-messages-tab" class ="col-sm tab" onclick="onTabSelect(this)"> Sent messages </div>
+            </div>
+         </div>
+         <div id="message-list" class ="container" style = "height: 350px; overflow-y : auto; overflow-x: hidden;">
+            <div class="message row new-message" onclick="onMessageSelect(this)">
+               <div class="message-check-box">
+                  <input type="checkbox" checked>
+               </div>
+               <div class="avatar message-avatar col-2 "></div>
+               <div class="message-body col-10">
+                  <div class="row">
+                     <div class="user-timestamp col-sm"><span>05-18-2018 13:21</span><span>@Rennethen Ingrid</span></div>
+                  </div>
+                  <div class="row">
+                     <div class ="user-message col-sm"> Consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. </div>
+                  </div>
+               </div>
+            </div>
+            <div class="message row new-message" onclick="onMessageSelect(this)">
+               <div class="message-check-box">
+                  <input type="checkbox" checked>
+               </div>
+               <div class="avatar message-avatar col-2 "></div>
+               <div class="message-body col-10">
+                  <div class="row">
+                     <div class="user-timestamp col-sm"><span>05-20-2018 18:49</span><span>@Johne Johnes</span></div>
+                  </div>
+                  <div class="row">
+                     <div class ="user-message col-sm"> Consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. </div>
+                  </div>
+               </div>
+            </div>
+         </div>
+         <div class="delete-dropdown-closed" id="delete-dropdown">
+            <div style ="width: 100px;" id ="delete-button" onclick="onDeleteButtonDown()"> <span>Delete</span> </div>
+         </div>
+         <div id="message-textfield" style="width: 100%; margin: 1em auto;"> <span style="display: block"> Type a message </span>
+            <textarea id="new-message-field" style ="resize: vertical; width: 100%;" rows="4">
+            Hey I'm very interested in the iPhone you have listed, are you willing to negotiate or is the price final?
+            </textarea>
+            <button type="button"> Back </button>
+            <button type="button" onclick="onSendMessage(this)"> Send </button>
+         </div>
+      </div>
+       
+       <!-- this script is run last after the page loads -->
+      <script>
+         //get a current count of messages
+         $("#new-messages-counter").val($(".new-message").length);
+         $("#all-messages-counter").val($(".message").length);
+      </script>
+   </body>
+</html>
